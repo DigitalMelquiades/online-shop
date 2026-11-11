@@ -1,0 +1,8 @@
+{% load shop_extras %}
+<p class="price{% if big %} price--big{% endif %}">
+  <span class="price__now"><span class="sr">ფასი </span>{{ price.current|money }} $</span>
+  {% if price.discountPercentage %}
+  <s class="price__was"><span class="sr">ძველი ფასი </span>{{ price.beforeDiscount|money }} $</s>
+  {% if big %}<span class="pill pill--sale">−{{ price.discountPercentage|floatformat:0 }}%</span>{% endif %}
+  {% endif %}
+</p>

@@ -1,0 +1,59 @@
+{% load static %}<!doctype html>
+<html lang="ka">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}თარო{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wdth,wght@62.5..100,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'shop/app.css' %}">
+</head>
+<body>
+  <a class="skip" href="#main">გადასვლა შიგთავსზე</a>
+  <header class="top">
+    <div class="top__in">
+      <a class="brand" href="{% url 'shop:home' %}" aria-label="თარო, მთავარი გვერდი"><span class="brand__mark" aria-hidden="true"></span>თარო</a>
+
+      <form class="search" action="{% url 'shop:home' %}" method="get" role="search">
+        <label class="sr" for="q">ნივთის ძებნა სახელწოდებით</label>
+        <input id="q" name="q" type="search" value="{{ filters.q|default:'' }}" placeholder="მოძებნეთ ნივთი, მაგ. iPhone" autocomplete="off">
+        <button type="submit" aria-label="ძებნა"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      </form>
+
+      <nav class="cats" aria-label="კატეგორიები">
+        {% for id, label in nav_categories %}<a href="{% url 'shop:home' %}?category={{ id }}" {% if filters.category == id %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+      </nav>
+
+      <nav class="top__nav" aria-label="ანგარიში და კალათა">
+        {% if shopper %}
+          <span class="hello">{{ shopper.first_name|default:shopper.name }}</span>
+          <form action="{% url 'shop:sign_out' %}" method="post">{% csrf_token %}
+            <button class="link" type="submit">გასვლა</button>
+          </form>
+        {% else %}
+          <a class="link" href="{% url 'shop:sign_in' %}?next={{ request.get_full_path|urlencode }}">შესვლა</a>
+        {% endif %}
+        <a class="cartlink" href="{% url 'shop:cart' %}" aria-label="კალათა, {{ cart_count }} ნივთი">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M3 4h2.2l2.3 11.2a1 1 0 0 0 1 .8h9.3a1 1 0 0 0 1-.76L20.5 8H6.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.5" cy="19.5" r="1.5"/><circle cx="17.5" cy="19.5" r="1.5"/></svg>
+          {% if cart_count %}<span class="cartlink__n">{{ cart_count }}</span>{% endif %}
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  {% if messages %}
+  <div class="flash" role="status">
+    {% for message in messages %}<p class="flash__item flash__item--{{ message.tags }}">{{ message }}</p>{% endfor %}
+  </div>
+  {% endif %}
+
+  <main id="main" class="page">{% block content %}{% endblock %}</main>
+
+  <footer class="foot">
+    <p>სასწავლო პროექტი. ნივთები, ანგარიშები და კალათა ინახება <a href="https://everrest.educata.dev">EverREST API</a>-ზე. <a href="{% url 'admin:index' %}">ადმინისტრირება</a></p>
+  </footer>
+  <script>window.NO_IMAGE = "{% static 'shop/noimage.svg' %}";</script>
+  <script src="{% static 'shop/app.js' %}" defer></script>
+</body>
+</html>

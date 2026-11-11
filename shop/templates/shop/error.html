@@ -1,0 +1,8 @@
+{% extends 'shop/base.html' %}
+{% block content %}
+<div class="empty">
+  <h2>გვერდი ვერ ჩაიტვირთა</h2>
+  <p>{{ message }}</p>
+  <a class="btn" href="{{ request.get_full_path }}">თავიდან ცდა</a>
+</div>
+{% endblock %}

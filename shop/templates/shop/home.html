@@ -1,0 +1,136 @@
+{% extends 'shop/base.html' %}
+{% load shop_extras %}
+{% block title %}თარო: ლეპტოპები და ტელეფონები{% endblock %}
+{% block content %}
+{% if featured %}
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero__text">
+    <h1 id="hero-title">ლეპტოპები და ტელეფონები ერთ თაროზე</h1>
+    <p>{{ total }} ნივთი {{ brands|length }} ბრენდისგან. გაფილტრეთ ფასით, ბრენდით ან რეიტინგით და დაამატეთ კალათაში.</p>
+    <p class="hero__links">
+      {% for c in categories %}<a class="btn{% if not forloop.first %} btn--ghost{% endif %}" href="?category={{ c.id }}">{{ c.label }}</a>{% endfor %}
+    </p>
+  </div>
+  <a class="hero__pick" href="{% url 'shop:product' featured.id %}">
+    <img src="{{ featured.thumbnail }}" alt="" width="360" height="360">
+    <span class="hero__card">
+      <span class="hero__name">{{ featured.title }}</span>
+      {% include 'shop/_tag.html' with price=featured.price big=True %}
+    </span>
+  </a>
+</section>
+{% endif %}
+<div class="store">
+  <aside class="filters" aria-label="ფილტრი">
+    <details open data-filters>
+      <summary>ფილტრი{% if filters_active %} <span class="dot" aria-label="ჩართულია"></span>{% endif %}</summary>
+      <form method="get" action="{% url 'shop:home' %}" data-autosubmit>
+        {% if filters.q %}<input type="hidden" name="q" value="{{ filters.q }}">{% endif %}
+        <input type="hidden" name="sort" value="{{ filters.sort }}">
+
+        <fieldset>
+          <legend>კატეგორია</legend>
+          <label class="opt"><input type="radio" name="category" value="" {% if not filters.category %}checked{% endif %}> ყველა</label>
+          {% for c in categories %}
+          <label class="opt"><input type="radio" name="category" value="{{ c.id }}" {% if filters.category == c.id %}checked{% endif %}> {{ c.label }}</label>
+          {% endfor %}
+        </fieldset>
+
+        <fieldset>
+          <legend>ბრენდი</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="brand" value="" {% if not filters.brand %}checked{% endif %}><span>ყველა</span></label>
+            {% for b in brands %}
+            <label class="chip"><input type="radio" name="brand" value="{{ b }}" {% if filters.brand == b %}checked{% endif %}><span>{{ b }}</span></label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>ფასი, $</legend>
+          <div class="range">
+            <label><span class="sr">მინიმალური ფასი</span><input type="number" name="price_min" min="0" step="1" inputmode="numeric" placeholder="დან" value="{{ filters.price_min|default_if_none:''|floatformat:'-2u' }}"></label>
+            <span aria-hidden="true">–</span>
+            <label><span class="sr">მაქსიმალური ფასი</span><input type="number" name="price_max" min="0" step="1" inputmode="numeric" placeholder="მდე" value="{{ filters.price_max|default_if_none:''|floatformat:'-2u' }}"></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>რეიტინგი</legend>
+          <label class="opt"><input type="radio" name="rating" value="" {% if not filters.rating %}checked{% endif %}> ნებისმიერი</label>
+          {% for r in rating_choices %}
+          <label class="opt"><input type="radio" name="rating" value="{{ r }}" {% if filters.rating == r %}checked{% endif %}> {% stars r %} <span>{{ r }} და მეტი</span></label>
+          {% endfor %}
+        </fieldset>
+
+        <div class="filters__actions">
+          <button class="btn" type="submit">ფილტრის გამოყენება</button>
+          {% if filters_active %}<a class="link" href="{% url 'shop:home' %}">გასუფთავება</a>{% endif %}
+        </div>
+      </form>
+    </details>
+  </aside>
+
+  <section class="results" aria-labelledby="results-title">
+    <div class="results__head">
+      <{% if featured %}h2{% else %}h1{% endif %} id="results-title" class="results__title">
+        {% if filters.q %}„{{ filters.q }}“{% elif featured %}ყველა ნივთი{% else %}ლეპტოპები და ტელეფონები{% endif %}
+        <small>{{ total }} ნივთი</small>
+      </{% if featured %}h2{% else %}h1{% endif %}>
+      <form method="get" class="sort">
+        {% for key, value in request.GET.items %}{% if key != 'sort' and key != 'page' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
+        <label for="sort">დალაგება</label>
+        <select id="sort" name="sort" data-submit-on-change>
+          {% for key, label in sorts %}<option value="{{ key }}" {% if filters.sort == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <noscript><button class="btn" type="submit">OK</button></noscript>
+      </form>
+    </div>
+
+    {% if filters_active %}
+    <p class="applied">
+      <span class="sr">ჩართული ფილტრები:</span>
+      {% if filters.q %}<a href="{% query q='' page='' %}">ძებნა: {{ filters.q }} <span aria-hidden="true">×</span><span class="sr">მოხსნა</span></a>{% endif %}
+      {% for c in categories %}{% if filters.category == c.id %}<a href="{% query category='' page='' %}">{{ c.label }} <span aria-hidden="true">×</span><span class="sr">მოხსნა</span></a>{% endif %}{% endfor %}
+      {% if filters.brand %}<a class="cap" href="{% query brand='' page='' %}">{{ filters.brand }} <span aria-hidden="true">×</span><span class="sr">მოხსნა</span></a>{% endif %}
+      {% if filters.price_min is not None %}<a href="{% query price_min='' page='' %}">{{ filters.price_min|money }} $-დან <span aria-hidden="true">×</span><span class="sr">მოხსნა</span></a>{% endif %}
+      {% if filters.price_max is not None %}<a href="{% query price_max='' page='' %}">{{ filters.price_max|money }} $-მდე <span aria-hidden="true">×</span><span class="sr">მოხსნა</span></a>{% endif %}
+      {% if filters.rating %}<a href="{% query rating='' page='' %}">რეიტინგი {{ filters.rating }}+ <span aria-hidden="true">×</span><span class="sr">მოხსნა</span></a>{% endif %}
+    </p>
+    {% endif %}
+
+    {% if catalogue_empty %}
+      <div class="empty"><h2>კატალოგი ჯერ ცარიელია</h2><p>ნივთები API-დან ჩამოსატვირთია. გაუშვით ბრძანება <code>python manage.py import_products</code> და განაახლეთ გვერდი.</p></div>
+    {% elif not products %}
+      <div class="empty"><h2>ამ პირობებით ნივთი არ მოიძებნა</h2><p>შეცვალეთ ფასის ზღვარი ან მოხსენით რომელიმე ფილტრი.</p><a class="btn" href="{% url 'shop:home' %}">ყველა ნივთის ჩვენება</a></div>
+    {% else %}
+    <ul class="grid">
+      {% for item in products %}
+      <li class="card{% if not item.available %} card--out{% endif %}">
+        <a class="card__photo" href="{% url 'shop:product' item.id %}" tabindex="-1" aria-hidden="true">
+          <img src="{{ item.thumbnail }}" alt="" loading="lazy" width="240" height="240">
+          {% if not item.available %}<span class="pill pill--out">ამოიწურა</span>
+          {% elif item.price.discountPercentage %}<span class="pill pill--sale">−{{ item.price.discountPercentage|floatformat:0 }}%</span>{% endif %}
+        </a>
+        <div class="card__body">
+          <p class="card__brand cap">{{ item.brand }}</p>
+          <h2 class="card__title"><a href="{% url 'shop:product' item.id %}">{{ item.title }}</a></h2>
+          <p class="rating">{% stars item.rating %} <span>{{ item.rating|one_decimal }}</span></p>
+          {% include 'shop/_tag.html' with price=item.price %}
+          {% include 'shop/_add.html' with item=item wide=True %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% if page_count > 1 %}
+    <nav class="pages" aria-label="გვერდები">
+      {% for n in pages %}
+        {% if n == page %}<span aria-current="page">{{ n }}</span>{% else %}<a href="{% query page=n %}">{{ n }}</a>{% endif %}
+      {% endfor %}
+    </nav>
+    {% endif %}
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'shop/base.html' %}
+{% load shop_extras %}
+{% block title %}კალათა | თარო{% endblock %}
+{% block content %}
+<h1 class="h1">კალათა</h1>
+
+{% if not lines %}
+<div class="empty">
+  <h2>კალათა ცარიელია</h2>
+  <p>დაამატეთ ნივთი მთავარი გვერდიდან და ის აქ გამოჩნდება.</p>
+  <a class="btn" href="{% url 'shop:home' %}">ნივთების დათვალიერება</a>
+</div>
+{% else %}
+<div class="cart">
+  <ul class="cart__lines">
+    {% for line in lines %}
+    <li class="line">
+      <a class="line__photo" href="{% url 'shop:product' line.id %}" tabindex="-1" aria-hidden="true"><img src="{{ line.product.thumbnail }}" alt="" width="120" height="120" loading="lazy"></a>
+
+      <div class="line__main">
+        <h2><a href="{% url 'shop:product' line.id %}">{{ line.product.title }}</a></h2>
+        <p class="rating">{% stars line.product.rating %} <span>{{ line.product.rating|one_decimal }}</span></p>
+        <dl class="line__facts">
+          <div><dt>საწყობში</dt><dd>{% if line.available %}{{ line.available }} ცალი{% else %}<span class="out">ამოიწურა</span>{% endif %}</dd></div>
+          <div><dt>Reviews</dt><dd>{{ line.reviews }}</dd></div>
+          <div><dt>ერთეულის ფასი</dt><dd>{{ line.unit_price|money }} $</dd></div>
+        </dl>
+      </div>
+
+      <div class="line__side">
+        <p class="line__total">{{ line.line_total|money }} $</p>
+        <form class="stepper" method="post" action="{% url 'shop:cart_update' %}" aria-label="რაოდენობა">{% csrf_token %}
+          <input type="hidden" name="id" value="{{ line.id }}">
+          <button type="submit" name="quantity" value="{{ line.quantity|add:'-1' }}" aria-label="რაოდენობის დაკლება" {% if line.quantity <= 1 %}disabled{% endif %}>−</button>
+          <output aria-live="polite">{{ line.quantity }}</output>
+          <button type="submit" name="quantity" value="{{ line.quantity|add:'1' }}" aria-label="რაოდენობის მომატება" {% if not line.can_add %}disabled title="საწყობში მეტი არ არის"{% endif %}>+</button>
+        </form>
+        <form method="post" action="{% url 'shop:cart_remove' %}">{% csrf_token %}
+          <input type="hidden" name="id" value="{{ line.id }}">
+          <button class="link link--danger" type="submit">წაშლა</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <aside class="sum" aria-label="ჯამი">
+    <dl>
+      <div><dt>ნივთების რაოდენობა</dt><dd>{{ quantity }}</dd></div>
+      {% if saved %}<div><dt>ფასდაკლებამდე</dt><dd><s>{{ total_before|money }} $</s></dd></div>
+      <div><dt>დაზოგეთ</dt><dd class="sale">{{ saved|money }} $</dd></div>{% endif %}
+    </dl>
+    <p class="sum__label">ჯამური ფასი</p>
+    <p class="sum__total">{{ total|money }} $</p>
+    <form method="post" action="{% url 'shop:cart_checkout' %}">{% csrf_token %}
+      <button class="btn btn--wide" type="submit">შეკვეთის გაფორმება</button>
+    </form>
+    <a class="link" href="{% url 'shop:home' %}">ყიდვის გაგრძელება</a>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}

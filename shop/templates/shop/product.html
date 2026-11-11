@@ -1,0 +1,107 @@
+{% extends 'shop/base.html' %}
+{% load shop_extras %}
+{% block title %}{{ product.title }} | თარო{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="{% url 'shop:home' %}">ყველა ნივთი</a> / <a href="{% url 'shop:home' %}?category={{ product.category.id }}">{{ product.category_label }}</a></p>
+
+<article class="product">
+  <div class="gallery">
+    <div class="gallery__main"><img id="gallery-main" src="{{ gallery.0 }}" alt="{{ product.title }}" width="560" height="560"></div>
+    {% if gallery|length > 1 %}
+    <ul class="gallery__thumbs">
+      {% for src in gallery %}
+      <li><button type="button" data-thumb="{{ src }}" {% if forloop.first %}aria-current="true"{% endif %} aria-label="სურათი {{ forloop.counter }}"><img src="{{ src }}" alt="" loading="lazy" width="72" height="72"></button></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+
+  <div class="product__info">
+    <h1>{{ product.title }}</h1>
+    <p class="rating">{% stars product.rating %} <span>{{ product.rating|one_decimal }}</span> <a href="#review" data-open-tab="review">{{ ratings_count }} შეფასება</a></p>
+
+    {% include 'shop/_tag.html' with price=product.price big=True %}
+
+    <dl class="facts">
+      <div><dt>გამოშვების თარიღი</dt><dd>{{ product.issueDate|iso_date }}</dd></div>
+      <div><dt>ბრენდი</dt><dd class="cap">{{ product.brand }}</dd></div>
+      <div><dt>საწყობში დარჩენილია</dt><dd>{% if product.available %}{{ product.available }} ცალი{% else %}<span class="out">ამოიწურა</span>{% endif %}</dd></div>
+    </dl>
+
+    <div class="product__actions">
+      {% include 'shop/_add.html' with item=product %}
+      {% if shopper %}
+        <button class="btn btn--ghost" type="button" data-open-dialog="review-dialog">{% if my_review %}შეფასების შეცვლა{% else %}შეფასება{% endif %}</button>
+      {% else %}
+        <a class="btn btn--ghost" href="{% url 'shop:sign_in' %}?next={{ request.path|urlencode }}">შეფასება</a>
+      {% endif %}
+    </div>
+  </div>
+</article>
+
+<section class="tabs" data-tabs>
+  <div class="tabs__list" role="tablist" aria-label="ნივთის ინფორმაცია">
+    <button role="tab" id="tab-details" aria-controls="details" aria-selected="true" type="button">Details</button>
+    <button role="tab" id="tab-review" aria-controls="review" aria-selected="false" type="button">Review <span class="count">{{ reviews|length }}</span></button>
+  </div>
+
+  <div class="tabs__panel" id="details" role="tabpanel" aria-labelledby="tab-details">
+    <p class="lead">{{ product.description }}</p>
+    <table class="specs">
+      <tr><th scope="row">კატეგორია</th><td>{{ product.category_label }}</td></tr>
+      <tr><th scope="row">ბრენდი</th><td class="cap">{{ product.brand }}</td></tr>
+      <tr><th scope="row">გამოშვების თარიღი</th><td>{{ product.issueDate|iso_date }}</td></tr>
+      <tr><th scope="row">გარანტია</th><td>{{ product.warranty }} წელი</td></tr>
+      <tr><th scope="row">ფასი</th><td>{{ product.price.current|money }} $</td></tr>
+      <tr><th scope="row">საწყობში</th><td>{{ product.available }} ცალი</td></tr>
+    </table>
+  </div>
+
+  <div class="tabs__panel" id="review" role="tabpanel" aria-labelledby="tab-review">
+    <p class="review-sum">{% stars product.rating %} <b>{{ product.rating|one_decimal }}</b> საშუალო რეიტინგი, სულ {{ ratings_count }} შეფასება</p>
+    {% if reviews %}
+    <ul class="reviews">
+      {% for r in reviews %}
+      <li>
+        <p class="reviews__who"><b>{{ r.full_name }}</b> {% stars r.rating %} <time datetime="{{ r.created_at|date:'c' }}">{{ r.created_at|date:'d.m.Y' }}</time></p>
+        {% if r.text %}<p class="reviews__text">{{ r.text|linebreaksbr }}</p>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">ამ ნივთზე ტექსტური შეფასება ჯერ არავის დაუწერია. დაწერეთ პირველმა.</p>
+    {% endif %}
+  </div>
+</section>
+
+{% if shopper %}
+<dialog class="modal" id="review-dialog" aria-labelledby="review-dialog-title">
+  <form method="post" action="{% url 'shop:review' product.id %}">{% csrf_token %}
+    <h2 id="review-dialog-title">შეაფასეთ ნივთი</h2>
+    <p class="muted">{{ product.title }}</p>
+
+    <fieldset class="rate">
+      <legend>Rating</legend>
+      <div class="rate__stars">
+        {% for v in star_values %}
+        <input type="radio" id="star{{ v }}" name="rating" value="{{ v }}" required {% if my_review.rating == v %}checked{% endif %}>
+        <label for="star{{ v }}" title="{{ v }}"><span class="sr">{{ v }} ვარსკვლავი</span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <label class="field"><span>სახელი გვარი</span>
+      <input type="text" name="full_name" value="{{ default_name }}" required minlength="2" maxlength="80" autocomplete="name">
+    </label>
+    <label class="field"><span>შეფასების ტექსტი <small>(სურვილისამებრ)</small></span>
+      <textarea name="text" rows="4" maxlength="2000">{{ my_review.text|default:'' }}</textarea>
+    </label>
+
+    <div class="modal__actions">
+      <button class="btn btn--ghost" type="button" data-close-dialog>გაუქმება</button>
+      <button class="btn" type="submit">OK</button>
+    </div>
+  </form>
+</dialog>
+{% endif %}
+{% endblock %}

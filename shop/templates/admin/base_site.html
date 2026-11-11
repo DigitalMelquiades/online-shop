@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | თარო{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'shop/admin.css' %}">
+{% endblock %}
+
+{# The panel uses the shop's light look only, so the dark theme and its switch are left out. #}
+{% block dark-mode-vars %}{% endblock %}
+
+{% block branding %}
+<div id="site-name">
+  <a href="{% url 'admin:index' %}"><span class="brand-mark" aria-hidden="true"></span>თარო <small>ადმინისტრირება</small></a>
+</div>
+{% endblock %}
+
+{% block nav-global %}<a class="to-shop" href="{% url 'shop:home' %}">მაღაზიის ნახვა</a>{% endblock %}

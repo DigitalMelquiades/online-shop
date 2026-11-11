@@ -1,0 +1,19 @@
+{% extends 'shop/base.html' %}
+{% block title %}შესვლა | თარო{% endblock %}
+{% block content %}
+<section class="auth">
+  <h1 class="h1">შესვლა</h1>
+  <p class="muted">შესვლის შემდეგ შეძლებთ ნივთების კალათაში დამატებას და შეფასებას.</p>
+  <form method="post" class="form">{% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <label class="field"><span>ელფოსტა</span>
+      <input type="email" name="email" value="{{ email }}" required autocomplete="email" autofocus>
+    </label>
+    <label class="field"><span>პაროლი</span>
+      <input type="password" name="password" required autocomplete="current-password">
+    </label>
+    <button class="btn btn--wide" type="submit">შესვლა</button>
+  </form>
+  <p>ანგარიში არ გაქვთ? <a href="{% url 'shop:sign_up' %}?next={{ next|urlencode }}">დარეგისტრირდით</a></p>
+</section>
+{% endblock %}

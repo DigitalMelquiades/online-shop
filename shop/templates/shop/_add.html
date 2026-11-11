@@ -1,0 +1,12 @@
+{% if item.available %}
+<form action="{% url 'shop:cart_add' %}" method="post">{% csrf_token %}
+  <input type="hidden" name="id" value="{{ item.id }}">
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <button class="btn{% if wide %} btn--soft btn--wide{% endif %}" type="submit">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 4h2.2l2.3 11.2a1 1 0 0 0 1 .8h9.3a1 1 0 0 0 1-.76L20.3 9.5H6.4M14 2.5v5M11.5 5h5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.5" cy="19.5" r="1.4" fill="currentColor"/><circle cx="17.5" cy="19.5" r="1.4" fill="currentColor"/></svg>
+    კალათაში დამატება
+  </button>
+</form>
+{% else %}
+<button class="btn{% if wide %} btn--wide{% endif %}" type="button" disabled>ამოიწურა</button>
+{% endif %}

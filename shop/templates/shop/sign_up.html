@@ -1,0 +1,47 @@
+{% extends 'shop/base.html' %}
+{% block title %}რეგისტრაცია | თარო{% endblock %}
+{% block content %}
+<section class="auth auth--wide">
+  <h1 class="h1">რეგისტრაცია</h1>
+  <p class="muted">რეგისტრაციის შემდეგ ელფოსტაზე მიიღებთ დადასტურების ბმულს. შესვლა მის გახსნამდე ვერ მოხერხდება.</p>
+  <form method="post" class="form form--grid">{% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <label class="field"><span>სახელი</span>
+      <input type="text" name="firstName" value="{{ form.firstName }}" required minlength="2" maxlength="20" autocomplete="given-name">
+    </label>
+    <label class="field"><span>გვარი</span>
+      <input type="text" name="lastName" value="{{ form.lastName }}" required minlength="2" maxlength="20" autocomplete="family-name">
+    </label>
+    <label class="field"><span>ელფოსტა</span>
+      <input type="email" name="email" value="{{ form.email }}" required autocomplete="email">
+    </label>
+    <label class="field"><span>ტელეფონი</span>
+      <input type="tel" name="phone" value="{{ form.phone }}" required placeholder="+995599123456" autocomplete="tel">
+    </label>
+    <label class="field"><span>ასაკი</span>
+      <input type="number" name="age" value="{{ form.age }}" required min="1" max="120" inputmode="numeric">
+    </label>
+    <label class="field"><span>სქესი</span>
+      <select name="gender">
+        <option value="FEMALE" {% if form.gender == 'FEMALE' %}selected{% endif %}>ქალი</option>
+        <option value="MALE" {% if form.gender == 'MALE' %}selected{% endif %}>კაცი</option>
+        <option value="OTHER" {% if form.gender == 'OTHER' %}selected{% endif %}>სხვა</option>
+      </select>
+    </label>
+    <label class="field"><span>მისამართი</span>
+      <input type="text" name="address" value="{{ form.address }}" required autocomplete="street-address">
+    </label>
+    <label class="field"><span>საფოსტო ინდექსი</span>
+      <input type="text" name="zipcode" value="{{ form.zipcode }}" required placeholder="0178" autocomplete="postal-code">
+    </label>
+    <label class="field"><span>პაროლი <small>(8–30 სიმბოლო)</small></span>
+      <input type="password" name="password" required minlength="8" maxlength="30" autocomplete="new-password">
+    </label>
+    <label class="field"><span>გაიმეორეთ პაროლი</span>
+      <input type="password" name="password2" required minlength="8" maxlength="30" autocomplete="new-password">
+    </label>
+    <button class="btn btn--wide form__full" type="submit">ანგარიშის შექმნა</button>
+  </form>
+  <p>უკვე გაქვთ ანგარიში? <a href="{% url 'shop:sign_in' %}?next={{ next|urlencode }}">შედით</a></p>
+</section>
+{% endblock %}

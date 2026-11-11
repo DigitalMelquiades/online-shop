@@ -1,0 +1,14 @@
+{% extends "admin/index.html" %}
+{% load shop_extras %}
+
+{% block content %}
+{% shop_stats as stats %}
+<ul class="stats">
+  <li><a href="{% url 'admin:shop_product_changelist' %}"><b>{{ stats.products }}</b><span>ნივთი ბაზაში</span></a></li>
+  <li><a href="{% url 'admin:shop_product_changelist' %}?photo=yes"><b>{{ stats.visible }}</b><span>ჩანს მაღაზიაში</span></a></li>
+  <li><a href="{% url 'admin:shop_product_changelist' %}?in_stock=no"><b>{{ stats.sold_out }}</b><span>ამოიწურა</span></a></li>
+  <li{% if stats.no_photo %} class="stats__warn"{% endif %}><a href="{% url 'admin:shop_product_changelist' %}?photo=no"><b>{{ stats.no_photo }}</b><span>ფოტოს გარეშე</span></a></li>
+  <li><a href="{% url 'admin:shop_review_changelist' %}"><b>{{ stats.reviews }}</b><span>შეფასება</span></a></li>
+</ul>
+{{ block.super }}
+{% endblock %}
